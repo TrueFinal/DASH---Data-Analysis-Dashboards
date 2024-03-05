@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import jwt
+from datetime import datetime, timedelta
 
 dados = 'dados_biodisel.csv'
 df = pd.read_csv(dados, delimiter=',')
@@ -47,23 +49,27 @@ st.markdown(background, unsafe_allow_html=True)
 def main():
     st.title("DASH - Acesso a Informações Internas Gráficas - Petrobrás")
 
-    menu = ["Login", "Dashboard's"]
+    menu = ["Login"]
     choice = st.sidebar.selectbox("Menu", menu)
 
     if choice == "Login":
-        st.subheader("Login")
-        username = st.sidebar.text_input("Usuário")
-        password = st.sidebar.text_input("Senha", type='password')
-        if st.sidebar.checkbox("Login"):
-            if password == "12345":  # Aqui você pode substituir por um sistema de autenticação real
+        st.subheader("Faça login para ter acesso aos dados")
+        username = st.text_input("Nome de usuário")
+        password = st.text_input("Senha", type="password")
+
+        if st.sidebar.button("Login"):
+            if username == ["Murillo", "Rafael", "Felipe", "Marcelo", "Julia"] and password == "71559780":
+                expiration_time = datetime.utcnow() + timedelta(hours=1)  # Token expira em 1 hora
+                token_payload = {"username": username, "exp": expiration_time}
+                secret_key = "71559780@Mmm"  # Substitua pela sua chave secreta
+                token = jwt.encode(token_payload, secret_key, algorithm="HS256")
                 st.success("Logado como {}".format(username))
                 task = st.selectbox("Dashboard", ["Gráficos", "Dados", "Perfil"])
                 if task == "Gráficos":
                     st.subheader("Gráficos")
-                    if st.sidebar.button("Clique para visualizar"):
-                        st.header("Vendas totais de biodiesel - (2017 - 2024)")
-                        fig = px.bar(df_agrupado, x='Ano', y='Vendas de Biodiesel', title="Vendas Biodiesel (Em Bilhões)")
-                        st.plotly_chart(fig, use_container_width=True)
+                    st.header("Vendas totais de biodiesel - (2017 - 2024)")
+                    fig = px.bar(df_agrupado, x='Ano', y='Vendas de Biodiesel', title="Vendas Biodiesel (Em Bilhões)")
+                    st.plotly_chart(fig, use_container_width=True)
                 elif task == "Dados":
                     st.subheader("Dados")
                     st.sidebar.code(df)
